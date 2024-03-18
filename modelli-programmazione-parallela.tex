@@ -93,4 +93,15 @@ Un altro esempio comune di modello ibrido consiste nel combinare i dati in paral
 	\caption{modello SPMD.}
 	\label{fig:spmd}
 \end{figure}
-A differenza di SIMD (Single Instruction Multiple Data), nel SPMD, più processori autonomi eseguono simultaneamente lo stesso programma in punti indipendenti, anziché in unico \textbf{lockstep} che SIMD
+A differenza di SIMD (Single Instruction Multiple Data), nel SPMD, più processori autonomi eseguono simultaneamente lo stesso programma in punti indipendenti, anziché in unico \textbf{lockstep} che SIMD impone su dati diversi.\footnote{I sistemi lockstep sono sistemi informatici tolleranti agli errori che eseguono lo stesso insieme di operazioni contemporaneamente in parallelo.} Con SPMD, le attività possono essere eseguite per CPU general purpose; SIMD richiede processori vettoriali per manipolare i flussi di dati. SPMD è una sottocategoria di MIMD.
+
+I programmi SPMD di solito hanno la logica necessaria programmata al loro interno per consentire a diversi task di fare una fork o di eseguire condizionatamente solo quelle parti del programma per cui sono state ideate. Cioè, le attività non devono necessariamente eseguire l'intero programma, ma solo una sua parte.
+
+\subsection{Modello MPMD (Multiple Program Multiple Data)} 
+\begin{figure}[th]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/mpmd.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
+\end{figure}
+Come SPMD, MPMD (figura \ref{fig:enter-label}) è in realtà un modello di programmazione di "alto livello" che può essere costruito su qualsiasi combinazione dei modelli di programmazione parallela precedentemente menzionati. Applicazioni MPMD hanno tipicamente più file oggetti eseguibili (programmi). Mentre l'applicazione viene eseguita in parallelo, ciascun task può eseguire lo stesso o un altro programa. Tutti i task potrebbero eseguire dati diversi.
