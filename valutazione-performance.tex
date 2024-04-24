@@ -94,3 +94,121 @@ Lo \textbf{speedup globale} $s_g$ è uguale a $ \frac{1}{(1-f_i)+\frac{f_i}{s_i}
 \begin{solution}
 	Dati disponibili: $s_i = 80$. Si sa che $f_i$ è un'incognita.
 \end{solution}
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Tempo di esecuzione} Il tempo di esecuzione viene usato per misurare le performance di un computer: l'architettura che performa lo stesso ammontare di tempo in meno tempo è la più veloce. Il \textbf{tempo di risposta rappresenta} la latenza per completare una task includendo accessi al disco, accessi alla memoria e le operazioni di input/output. Il \textbf{CPU time} corrisponde invece solamente al tempo utente pù il tempo di sistema della CPU (non include il tempo di attesa delle operazioni di I/O o di esecuzioen delle altre task, ad esempio).
+Il CPU time è calcolato come segue:
+\begin{align*}
+\text{CPU\_time} &= \text{Cicli di clock della CPU per una task} * \text{tempo di un ciclo di clock}\\
+&= \frac{\text{Cicli di clock della CPU per una task}}{\text{Frequenza di clock}}
+\end{align*}
+
+I Cicli di clock per istruzione (CPI) medi vengono calcolati come segue:
+\begin{align*}
+\text{CPI} &= \frac{\text{Cicli di clock della CPU per una task}}{\text{Numero di istruzioni}}\\
+\text{CPU time} &= \text{N di istruzioni} * \text{CPI} * \text{durata di un ciclo di clock}\\
+&= \frac{\text{N di istruzioni} * \text{CPI}}{\text{Frequenza di clock}}\\
+T_{CPU} &= CI * CPI * T_{CLOCK} = \frac{CI * CPI}{f_{CLOCK}}
+\end{align*}
+
+La relazione tra le varie metriche è visibile di seguito:
+\begin{align*}
+    \frac{\text{istruzioni}}{\text{task}} * \frac{\text{cicli di clock}}{\text{istruzione}} * \frac{\text{secondi}}{\text{cicli di clock}}= \frac{\text{secondi}}{\text{task}} = \text{CPU time}
+\end{align*}
+
+Il tempo di CPU dipende da 3 parametri:
+\begin{itemize}
+    \item \textbf{Ciclo di clock (o frequenza)}: dipende dalla tecnologia, quindi l'unico modo per migliorare questo parametro consiste nel sostituire l'architettura;
+    \item \textbf{CPI}: se vogliamo migliorare il numero medio di istruzioni per clock, l'unico come è migliorare l'organizzazione e l'instruction set del sistema che si usa -> possiamo avere architetture che forniscono poche istruzioni, che però sono molto complesse alla base e quindi richiedono più tempo per essere terminate;
+    \item \textbf{Numero di istruzioni}: il numero di istruzioni usate da un programma dipende dall'instruction set architecture e dalla tecnologia del compilatore. Un buon compilatore permette idealmente di avere un codice finale con meno istruzioni (ovviamente un fattore importante rimane la capacità del programmatore).
+\end{itemize}
+
+Il numero totale di cicli di clock per una task si calcola come segue:
+\begin{align*}
+    \text{Cicli di clock della CPU} = \sum^n_{i=1} (CPI_i * I_i)
+\end{align*}
+dove:
+\begin{itemize}
+    \item $I_i$ rappresenta il numero di volte in cui l'istruzione $I$ è stata eseguita in una task;
+    \item $CPI_i$ rappresenta il numero medio di cicli di clock spesi per una generica istruzione.
+\end{itemize}
+
+Date queste misure, il CPU time può essere riscritto come:
+\begin{align*}
+    T_{CPU} = \sum^n_{i = 1} (CPI_i * I_i) * T_{CLOCK}
+\end{align*}
+
+
+\subsection{MIPS e GIPS}
+Con le sigle MIPS e GISP si intendono rispettivamente milioni di microistruzioni per secondo e miliardi di microistruzioni per secondo, dove:
+\begin{align*}
+    MIPS &= \frac{\text{N di istruzioni}}{\text{Tempo di esecuzione} * 10^6}\\
+    &= \frac{\text{frequenza di clock}}{CPI * 10^6}
+\end{align*}
+
+Il tempo di esecuzione diventa:
+\begin{align*}
+    \text{Tempo di esecuzione} = \frac{\text{N di istruzioni}}{MIPS * 10^6}
+\end{align*}
+
+Poiché MIPS rappresenta la frequenza di operazioni per unità di tempo, le performance per la macchina più veloce cha ha alti valori MIPS può essere specificata come l'inversa del tempo di esecuzione. Il vantaggio del MIPS è che è semplice da capire: le macchine più veloci hanno valori MIPS più alti. 
+
+La metrica MIPS presenta comunque una serie di problematiche:
+\begin{itemize}
+    \item Il valore dipende dall'instruction set, quindi è difficile da comparare con macchine che hanno diversi instruction set;
+    \item Varia in base al programma considerato;
+    \item Varia in modo inversamente proporzionale alla performance.
+\end{itemize}
+
+La limitazione principale di questa misura è che non considera il tipo di istruzioni eseguite. Ad esempio, le operazioni su interi sono generalmente più
+
+
+
+
+
+
+
+Se ci interessa misurare nello specifico le performance relative alle operazioni floating-point possiamo utilizzare la metrica GFLOPS, che sta per \textbf{billion of FP instructions per second} (dove FP indica le operazioni floating-point):
+\begin{align*}
+    GFLOPS = \frac{\text{N di \textbf{operazioni} FP in un programma}}{\text{Tempo di esecuzione} * 10^9}
+\end{align*}
+
+Ovviamente questa metrica non può essere usata in contesti diversi da quelli legati alle operazioni FP. Essendo basata su operazioni piuttosto che istruzioni, i FLOPS sono concepiti per essere un buon metodo di confronto tra le varie architetture. L'ipotesi è che stesso programma, lanciato su differenti architetture, esegue un diverso numero di istruzioni, ma lo stesso numero di operazioni floating-point. Le operazioni FP non sono considerate tra diverse architetture; il GFLOPS cambia cambiando il rapporto tra le operazioni intere e FP oppure cambiando il mix di operazioni FP veloci e lente.
+
+Il \textbf{Normalized GFLOPS} prevede di associare un bias, con funzione di peso, ad ogni operazione FP, come mostrato in figura \ref{fig:normalized-gflops}.
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/normalized-gflops.png}
+	\caption{Esempio di bias per operazioni FP.}
+	\label{fig:normalized-gflops}
+\end{figure}
+
+Un frammento di codice con operazioni un'operazione ADD, una DIVIDE e una SIN, si calcola avere 12 operazioni FP normalizzate.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
