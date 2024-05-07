@@ -1,16 +1,18 @@
 \section{Valutazione delle performance}
-La valutazione delle performance può essere fatta su due piani differenti, a seconda dei casi:
+La valutazione delle performance viene fatta per due motivi:
 \begin{itemize}
-    \item il \textbf{tempo di risposta}, anche conosciuto come il \emph{tempo di esecuzione} o \emph{tempo di latenza}, è definito come il tempo necessario per completare un task o un job.
+    \item dal punto di vista dell'\textbf{utente} per ridurre il tempo di risposta. È nota anche come \textbf{tempo di esecuzione} o \textbf{latenza}. Definita come il tempo trascorso dall'inizio al completamento del compito o lavoro;
 
-\item il \textbf{throughput} è l'ammontare di lavoro totale eseguito in un dato time slot, a volte chiamato \textbf{larghezza di banda}.
+\item dal punto di vista del \textbf{sistema} per aumentare il \textbf{throughput}, ovvero la quantità totale di lavoro svolto in un dato intervallo di tempo, a volte chiamato \textbf{larghezza di banda}.
+
 \end{itemize}
 
 Lo speedup è definito come il rapporto tra il tempo di esecuzione di due programmi:
 \begin{equation*}
 	n=\frac{execTime_y}{execTime_x}
+	=\frac{\frac{1}{\textsc{Performance}_y}}{\frac{1}{\textsc{Performance}_x}}=\frac{\textsc{Performance}_x}{\textsc{Performance}_y}
 \end{equation*}
-di solito $execTime_y$ viene sostituito dal tempo di esecuzione della versione sequenziale di un programma $P$ e $execTime_x$ con la sua versione parallelizzata.
+e misura il miglioramento delle prestazioni. \textbf{Nota:} il tempo di esecuzione è \textit{inversamente proporzionale} alle performance. Di solito $execTime_y$ viene sostituito dal tempo di esecuzione della versione sequenziale di un programma $P$ e $execTime_x$ con la sua versione parallelizzata.
 
 Le misurazioni delle performance possono essere fatte a diversi livelli (considerando solo l'architettura hardware, una sua parte, o una parte di codice, o un intero programma, oppure tutto l'insieme) sfruttando funzionalità contenute in una \textbf{benchmark suite} (un insieme di tool di benchmark, come i \textbf{kernels} che sono piccoli pezzi di codice chiave presi da applicazioni reali, oppure i \textbf{toy programs} che contengono programmi, solitamente lunghi 100 linee di codice, che implementano algoritmi come la moltiplicazione tra matrici, il quicksort, e così via. Vi sono poi i \textbf{benchmark sintetici}, ovvero programmi ideati per simulare il comportamento delle applicazioni reali (come il Linpak, e il Dhrystone). La \textbf{SPEC} (Standard Performance Evaluation Corporation) è un consorzio senza scopo di lucro che stabilisce, mantiene e approva benchmark e strumenti standardizzati per valutare le prestazioni per la nuova generazione di sistemi informatici. SPEC sviluppa suite di benchmark e inoltre esamina e pubblica i risultati presentati dalle nostre organizzazioni membri e da altri licenziatari di benchmark.
 
@@ -18,12 +20,13 @@ Per comparare le performance di un componente hardware può essere consultata un
 
 \subsection{Principio quantitativo} Per aumentare lo speedup è necessario concentrare le energie sul codice che viene eseguito più frequentemente, piuttosto che quello eseguito più raramente.
 
-Un importante riferimento a tal proposito, è la \textbf{legge di Amdahl}
+Un importante riferimento a tal proposito, è la \textbf{legge di Amdahl}.
+\newpage
 \paragraph{Legge di Amdahl.}
 \begin{mdframed}
-    \textit{"Il miglioramento delle prestazioni di un sistema che si può ottenere ottimizzando una certa parte del sistema è limitato dalla frazione di tempo in cui tale parte è effettivamente utilizzata"}
+    \textit{"Il miglioramento delle prestazioni di un sistema che si può ottenere ottimizzando una certa parte del sistema è limitato dalla frazione di tempo in cui tale parte è effettivamente utilizzata"}.
 \end{mdframed}
-Di seguito con $f_i \le 1$ (\textit{"fraction improved"}) viene indicata la frazione del tempo di esecuzione della macchina originale (o del codice originale) che può essere modificato per sfruttare i miglioramenti, mentre con $s_i \ge 1$ (\textit{"speedup improved"}) viene indicato il miglioramento ottenuto da un una modalità di esecuzione più veloce.
+Di seguito con $f_i \le 1$ (\textit{"fraction improved"}) viene indicata la frazione del tempo di esecuzione della macchina originale (o del codice originale) che può essere modificata per trarre vantaggio dalle migliorie, mentre con $s_i \ge 1$ (\textit{"speedup improved"}) viene indicato il miglioramento ottenuto da un una modalità di esecuzione più veloce.
 \begin{align}
     e_n &= e_o \cdot \left((1-f_i) + \frac{f_i}{s_i} \right) \label{eqn:execution-time-new} \\
     s_g &= \frac{e_o}{e_n}= \frac{1}{(1-f_i)+ \frac{f_i}{s_i}}\label{eqn:speedup-global}
@@ -89,38 +92,99 @@ Lo \textbf{speedup globale} $s_g$ è uguale a $ \frac{1}{(1-f_i)+\frac{f_i}{s_i}
 \end{solution}
 
 \begin{exercise}
-	Si vuole riscrivere un programma su un'architettura MIMD con 100 processori. L'obbiettivo è di ridurre il tempo di esecuzione di 80 volte rispetto a quello precedente su un'architettura SIMD. Qual'è la frazione del programma originale che può restare sequenziale?
+	Si vuole riscrivere un programma su un'architettura MIMD con 100 processori. L'obbiettivo è di ridurre il tempo di esecuzione di 80 volte rispetto a quello precedente su un'architettura SISD. Qual'è la frazione del programma originale che può restare sequenziale?
 \end{exercise}
 \begin{solution}
-	Dati disponibili: $s_i = 80$. Si sa che $f_i$ è un'incognita.
+	L'impostazione del problema è diversa dai precedenti. Il tempo di esecuzione della soluzione parallela è 80 volte più veloce di quella sequenziale. Si può osservare che il tempo totale è dato dalla somma del tempo di esecuzione della parte sequenziale e di quella parallela.
+	\begin{align*}
+		T&=\frac{T_{\textsc{sisd\textsubscript{\textsc{par}}}}}{\#\textsc{processori}}+\textsc{T\textsubscript{SISD}\textsubscript{\textsc{nonpar}}}\\
+		&=\frac{T\textsubscript{\textsc{sisd}}\cdot \%\textsc{par}}{\#\textsc{processori}}+T_\textsc{sisd}\cdot\underbrace{ (1-\% par) }_{\%\textsc{nonpar}}
+	\end{align*}
+	La percentuale parallelizzabile è dell' $80\%$ rispetto al tempo iniziale ($T_\textsc{SISD}$).  Il numero di processori è $100$. Per semplicità si imposta ad $x=\% par$, ovvero la percentuale cercata.
+	Sostituendo i dati nella formula:
+	\begin{align*}
+		\frac{\cancel{T_\textsc{sisd}}}{80}&=T_{\cancel{\textsc{sisd}}}\cdot \left(\frac{x}{100}+\underbrace{(1-x)}_{\textsc{\% nonpar}}\right)\\
+		\frac{1}{80} &=  \frac{x}{100} + (1-x)\implies \frac{x+100-100\, x}{100}=\frac{1}{80}
+		 \\ &\implies x = \left(\frac{5}{4}-100\right)\cdot\frac{1}{-99}\implies x = \frac{-395}{4}\cdot \frac{1}{-99}=0.997\\ &\implies x = 99.7\%
+	\end{align*}
 \end{solution}
 
-
-
-
-
-
-
-
-
-
-
-
+\begin{exercise}
+	Sapendo che il calcolo parallelo è 20 volte più veloce rispetto all'originale (sequenziale), calcolare:
+	\begin{itemize}
+		\item  la percentuale di parallelismo è la porzione di tempo impiegata utilizzando la modalità di esecuzione SIMD.
+		\item Disegna un grafico per rappresentare il miglioramento delle prestazioni come percentuale del calcolo eseguito in modalità SIMD.
+		\item  Quale percentuale di parallelismo è necessaria per ottenere un miglioramento delle prestazioni pari a 2? Quale per raggiungere la metà del miglioramento massimo?
+	\end{itemize}
+\end{exercise}
+\begin{solution}
+	Lo speedup che si ottiene è il seguente. Si pone $x=\% par$
+	\begin{align*}
+		\textsc{speedup} = \frac{1}{(1-x)+\frac{x}{\text{speedup par.}}} = \frac{1}{(1-x)+\frac{x}{20}} = \frac{20}{20-19 \, x}
+	\end{align*}
+	Il grafico è il seguente.
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{img/graph-ex4}
+		\caption{grafico dello speedup.}
+		\label{fig:graph-ex4}
+	\end{figure}
+\end{solution}
+Si consideri ora lo stesso esercizio ma con questi dati.
+\begin{exercise}
+	La percentuale di parallelismo raggiungibile è del 70\%. Ci sono due alternative.
+	\begin{enumerate}
+		\item Raddoppiare la velocità della modalità SIMD (è molto costoso)
+		\item Aumentare la percentuale di parallelismo concentrandosi sul compilatore.
+	\end{enumerate}
+	Quale \textbf{aumento} della percentuale di parallelismo è necessario per ottenere lo stesso guadagno di prestazioni?
+\end{exercise}
+\begin{solution}
+	Lo speedup originale si ottiene facendo
+	\begin{equation*}
+		\textsc{speedup orig}[20 \cdot 70 \%] = \frac{1}{(1-0.7)+\frac{0.7}{20}} = \frac{20}{20-14+0.7}=2.9851
+	\end{equation*}
+	Raddoppiando la velocità della modalità SIMD
+	\begin{equation*}
+		\textsc{speedup hw}[20 \cdot 70\%] = \frac{1}{(1-0.7)+\frac{0.7}{40}}=\frac{40}{40-28+0.7}=3.1496
+	\end{equation*}
+	Lo speedup adottando il compilatore è ovviamente parametrico, perché ci si sta chiedendo quale sia la percentuale necessaria per ottenere lo stesso guadagno di prestazioni, ed è il seguente.
+	\begin{equation*}
+		\textsc{speedup compiler}[20\cdot x\%] = \frac{1}{(1-x)+\frac{x}{20}}=\frac{20}{20-19\, x}
+	\end{equation*}
+	Si pone dunque
+	\[\textsc{speedup compiler}= \textsc{speedup hw}\]
+	ovvero
+	\begin{equation*}
+		\frac{20}{20-19\, x} = 3.1496 \implies x = 0.7184
+	\end{equation*}
+	Dunque è sufficiente una parallelizzazione del 71.84\%.
+\end{solution}
+\begin{exercise}
+	Si consideri un'architettura basata su cache. La memoria cache è 5 volte più veloce della memoria principale. La cache è usata per il 90\% del tempo. Ci si chiede quale sia lo speedup con e senza cache.
+\end{exercise}
+\begin{solution}
+	Lo speedup è il seguente.
+	\begin{equation*}
+		\textsc{speedup} = \frac{1}{(1-x)+\frac{x}{\textsc{speedup con cache}}} = \frac{1}{(1-0.9)+\frac{0.9}{5}}=\frac{1}{0.28}\approx 3.6
+	\end{equation*}
+	Si conclude che l'architettura basata su cache è più veloce di 3.6 volte la velocità della stessa architettura senza cache.
+\end{solution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Tempo di esecuzione} Il tempo di esecuzione viene usato per misurare le performance di un computer: l'architettura che performa lo stesso ammontare di tempo in meno tempo è la più veloce. Il \textbf{tempo di risposta rappresenta} la latenza per completare una task includendo accessi al disco, accessi alla memoria e le operazioni di input/output. Il \textbf{CPU time} corrisponde invece solamente al tempo utente pù il tempo di sistema della CPU (non include il tempo di attesa delle operazioni di I/O o di esecuzioen delle altre task, ad esempio).
+\subsection{Tempo di esecuzione} Il tempo di esecuzione viene usato per misurare le performance di un computer: l'architettura che esegue la stessa quantità di lavoro in meno tempo è la più veloce. Il \textbf{tempo di risposta} rappresenta la latenza per completare un task e include accessi al disco, gli accessi alla memoria e le operazioni di input/output. Il \textbf{CPU time} ovvero il tempo impiegato per svolgere operazioni di CPU (cicli di clock per eseguire il codice interessato, per operazioni di sistema -- ad esempio per la stampa a video -- mentre non è considerato CPU time il tempo speso per attendere dati o istruzioni accedendo in memoria perché è un tempo di attesa. 
 Il CPU time è calcolato come segue:
 \begin{align*}
-\text{CPU\_time} &= \text{Cicli di clock della CPU per una task} * \text{tempo di un ciclo di clock}\\
+\text{CPU\textsubscript{\textsc{time}}} &= \text{Cicli di clock della CPU per una task} * \text{tempo di un ciclo di clock}\\
 &= \frac{\text{Cicli di clock della CPU per una task}}{\text{Frequenza di clock}}
 \end{align*}
 
 I Cicli di clock per istruzione (CPI) medi vengono calcolati come segue:
 \begin{align*}
 \text{CPI} &= \frac{\text{Cicli di clock della CPU per una task}}{\text{Numero di istruzioni}}\\
-\text{CPU time} &= \text{N di istruzioni} * \text{CPI} * \text{durata di un ciclo di clock}\\
+\text{CPU\textsubscript{\textsc{time}}} &= \text{N di istruzioni} * \text{CPI} * \text{durata di un ciclo di clock}\\
 &= \frac{\text{N di istruzioni} * \text{CPI}}{\text{Frequenza di clock}}\\
-T_{CPU} &= CI * CPI * T_{CLOCK} = \frac{CI * CPI}{f_{CLOCK}}
+T\textsubscript{\textsc{{cpu}}} &= \text{CI}* \text{CPI} * T\textsubscript{\textsc{clock}} = \frac{\text{CI} * \text{CPI}}{f\textsubscript{\textsc{{clock}}}}
 \end{align*}
 
 La relazione tra le varie metriche è visibile di seguito:
@@ -131,7 +195,7 @@ La relazione tra le varie metriche è visibile di seguito:
 Il tempo di CPU dipende da 3 parametri:
 \begin{itemize}
     \item \textbf{Ciclo di clock (o frequenza)}: dipende dalla tecnologia, quindi l'unico modo per migliorare questo parametro consiste nel sostituire l'architettura;
-    \item \textbf{CPI}: se vogliamo migliorare il numero medio di istruzioni per clock, l'unico come è migliorare l'organizzazione e l'instruction set del sistema che si usa -> possiamo avere architetture che forniscono poche istruzioni, che però sono molto complesse alla base e quindi richiedono più tempo per essere terminate;
+    \item \textbf{CPI}: è il numero medio di cicli di clock per istruzione. Rappresenta una media. Dato un programma $P$, lo si esegue interamente e si contano i cicli di clock 
     \item \textbf{Numero di istruzioni}: il numero di istruzioni usate da un programma dipende dall'instruction set architecture e dalla tecnologia del compilatore. Un buon compilatore permette idealmente di avere un codice finale con meno istruzioni (ovviamente un fattore importante rimane la capacità del programmatore).
 \end{itemize}
 
@@ -152,7 +216,7 @@ Date queste misure, il CPU time può essere riscritto come:
 
 
 \subsection{MIPS e GIPS}
-Con le sigle MIPS e GISP si intendono rispettivamente milioni di microistruzioni per secondo e miliardi di microistruzioni per secondo, dove:
+Con le sigle MIPS e GIPS si intendono rispettivamente milioni di microistruzioni per secondo e miliardi di microistruzioni per secondo, dove:
 \begin{align*}
     MIPS &= \frac{\text{N di istruzioni}}{\text{Tempo di esecuzione} * 10^6}\\
     &= \frac{\text{frequenza di clock}}{CPI * 10^6}
