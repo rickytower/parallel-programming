@@ -214,7 +214,78 @@ Date queste misure, il CPU time può essere riscritto come:
     T_{CPU} = \sum^n_{i = 1} (CPI_i * I_i) * T_{CLOCK}
 \end{align*}
 
-
+\begin{exercise}
+	Si supponga di avere effettuato le seguenti  misurazioni.
+	\begin{itemize}
+		\item Frequenza delle operazioni in virgola mobile (incluse le FPSQR) = 25\%
+		\item CPI medio delle operazioni in virgola mobile = 4.0
+		\item Frequenza delle operazioni FPSQR (radice quadrata in virgola mobile) = 2\%
+		\item CPI delle operazioni FPSQR = 20.0
+	\end{itemize}
+	Ci sono due possibilità:
+	\begin{enumerate}
+		\item Decrementare la CPI del FPSQR a 2
+		\item Decrementare il CPI medio di tutte le operazioni FP (floating point) di 2.5
+	\end{enumerate}
+	Comparare le due alternative in termini di performance complessive.
+\end{exercise}
+\begin{solution}
+	Si ricava il CPI originale
+	\begin{equation*}
+		\textsc{cpi}_{\textsc{orig}}=(0.25\cdot 4)+(0.75 \cdot 1.33)=2.00
+	\end{equation*}
+	Si può calcolare il CPI per l'FPSQR migliorato, sottraendo i cicli risparmiati dal CPI originale:
+	\begin{align*}
+		\textsc{cpi}_1 &= \textsc{cpi}_{\textsc{orig}}-2\% \cdot \left(\textsc{cpi}_{\textsc{old\_fspqr}}-\textsc{cpi}_\textsc{new\_fspq\_only}\right)\\&=2.00-2\%\cdot(20-2)=1.64
+	\end{align*}
+	È possibile calcolare il CPI per il miglioramento di tutte le istruzioni FP e allo stesso modo sommando i CPI delle istruzioni FP e non FP. Utilizzando quest'ultimo metodo si ottiene:
+	\begin{equation*}
+		\textsc{cpi}_2 = \left(75\% \cdot 1.33\right)+(25\% \cdot 2.5) = 1.625
+	\end{equation*}
+	Dato che il CPI del miglioramento complessivo delle istruzioni FP è leggermente più basso, le sue prestazioni saranno leggermente migliori. Nello specifico, il miglioramento delle prestazioni complessive delle istruzioni FP è:
+	\begin{align*}
+			\textsc{speedup}_2 = \frac{\textsc{cpu\textsubscript{time\textsubscript{orig}}}}{\textsc{cpu\textsubscript{time\textsubscript{2}}}}= \frac{\textsc{ic}\cdot \textsc{clock\textsubscript{cycle}}\cdot \textsc{cpi}\textsubscript{\textsc{orig}}}{\textsc{ic}\cdot \textsc{clock\textsubscript{cycle}}\cdot \textsc{cpi}\textsubscript{\textsc{2}}}=\frac{\textsc{cpi\textsubscript{orig}}}{\textsc{cpi\textsubscript{2}}}=\frac{2.00}{1.625}=1.23
+	\end{align*}
+\end{solution}
+\begin{exercise}
+	L'architettura inizialmente dispone solo di istruzioni di caricamento e memorizzazione per accedere alla memoria. Tutte le altre operazioni lavorano nei registri (architettura L/S). Il riassunto delle istruzioni è riportato nella tabella.
+	\begin{table}[ht]
+		\centering
+		\begin{tabular}{|l|c|c|}
+			\hline
+			& \textbf{Frequenza}&\textbf{Cicli di clock}
+			\\\hline
+			ALU & 43\% & 1
+			\\\hline
+			Load & 21\% & 2
+			\\\hline
+			Store & 12\% & 2
+			\\\hline
+			Branch & 24\% & 2
+			\\\hline
+		\end{tabular}
+	\end{table}
+	Si supponga che il 25\% delle operazioni dell'ALU utilizzi un operando specificamente caricato, che non è più utile per le operazioni successive. Viene proposto di aggiornare il set di istruzioni avendo uno degli operandi di origine in memoria. Queste nuove operazioni reg-mem hanno un numero di cicli di clock pari a 2 e richiedono 3 cicli di clock per i salti, senza modificare il periodo del ciclo di clock. Questa modifica può migliorare le prestazioni della CPU?
+\end{exercise}
+\begin{solution}
+	Si ottiene $\textsc{cpi\textsubscript{old}}$
+	\begin{equation*}
+		\textsc{cpi\textsubscript{old}} = 0.43 \cdot 1 + 0.21 \cdot 2 + 0.12 \cdot 2 + 0.24 \cdot 2 = 1.57
+	\end{equation*}
+	Il tempo di $\textsc{cpi}\textsubscript{old}$ si ottiene come:
+	\begin{equation*}
+		\textsc{t\textsubscript{cpu\textsubscript{old}}} = \textsc{ci\textsubscript{old}} \cdot1.57 \cdot \textsc{t\textsubscript{clock\textsubscript{old}}}
+	\end{equation*}
+	il $\textsc{cpi}\textsubscript{new}$ è:
+	\begin{equation*}
+		\textsc{cpi\textsubscript{new}} = \frac{(0.43-(0.25 \cdot 0.43))\cdot 1+(0.21-(0.25\cdot 0.43))\cdot 2 +(0.25\cdot 0.43)\cdot 2+ 0.12 \cdot 2 + 0.24 \cdot 3}{1-(0.25 \cdot 0.43)}
+	\end{equation*}
+	Si ricava il$\textsc{t\textsubscript{cpu\textsubscript{new}}}$:
+	\begin{equation*}
+		\textsc{t\textsubscript{cpu\textsubscript{new}}}=(0.893\cdot \textsc{ci\textsubscript{old}})\cdot(1.908 \cdot \textsc{t\textsubscript{clock\textsubscript{old}}})=1.703 \cdot \textsc{ci\textsubscript{old}} \cdot \textsc{t\textsubscript{clock\textsubscript{old}}}
+	\end{equation*}
+	L'introduzione delle istruzioni reg-mem non compensa l'aumento del tempo di esecuzione dei salti.
+\end{solution}
 \subsection{MIPS e GIPS}
 Con le sigle MIPS e GIPS si intendono rispettivamente milioni di microistruzioni per secondo e miliardi di microistruzioni per secondo, dove:
 \begin{align*}
@@ -226,7 +297,7 @@ Il tempo di esecuzione diventa:
 \begin{align*}
     \text{Tempo di esecuzione} = \frac{\text{N di istruzioni}}{MIPS * 10^6}
 \end{align*}
-
+\
 Poiché MIPS rappresenta la frequenza di operazioni per unità di tempo, le performance per la macchina più veloce cha ha alti valori MIPS può essere specificata come l'inversa del tempo di esecuzione. Il vantaggio del MIPS è che è semplice da capire: le macchine più veloci hanno valori MIPS più alti. 
 
 La metrica MIPS presenta comunque una serie di problematiche:
@@ -260,8 +331,50 @@ Il \textbf{Normalized GFLOPS} prevede di associare un bias, con funzione di peso
 \end{figure}
 
 Un frammento di codice con operazioni un'operazione ADD, una DIVIDE e una SIN, si calcola avere 12 operazioni FP normalizzate.
-
-
+\newpage
+\begin{exercise}
+	Il programma Spice viene eseguito su una DECstation 3100 in 0,094 secondi. Il numero di operazioni in virgola mobile eseguite dal programma è riportato nella tabella.
+	\begin{table}[ht]
+		\centering
+		\scriptsize
+		\begin{tabular}{|l|r|}
+			\hline
+			addD & 25,999,440
+			\\\hline
+			subD & 18,266,439
+			\\\hline
+			mulD & 33,880,810
+			\\\hline
+			divD & 15,682,333
+			\\\hline
+			compareD & 9,745,930
+			\\\hline
+			negD & 2,617,846
+			\\\hline
+			absD & 2,195,930
+			\\\hline
+			convertD & 1,581,450
+			\\\hline
+			\textbf{totale} & \textbf{109,970,178}
+			\\\hline
+		\end{tabular}
+	\end{table}
+	Calcolare:
+	\begin{itemize}
+		\item I GFLOPS del programma.
+		\item I GFLOPS normalizzati.
+	\end{itemize}
+\end{exercise}
+\begin{solution}
+	\begin{align*}
+		\textsc{ci\textsubscript{ott}} &= \textsc{ci\textsubscript{non ott}}\cdot \left[(1-0.3)\cdot \left(1-\frac{1}{3}\right)\right]=0.9 \cdot \textsc{ci\textsubscript{non ott}}\\
+		\textsc{ci\textsubscript{ott}} &= \textsc{cpi\textsubscript{non ott}}=1\\
+		\textsc{t\textsubscript{\textsc{clock\textsubscript{ott}}}} &= 1.05 \cdot \textsc{t\textsubscript{\textsc{clock\textsubscript{non ott}}}}\\
+		\textsc{t\textsubscript{cpu\textsubscript{ott}}} &= 0.9 \cdot \textsc{ci\textsubscript{non ott}} \cdot \textsc{cpi\textsubscript{\textsc{non ott}}}\cdot\textsc{t\textsubscript{clock\textsubscript{non ott}}}\\
+		&=0.945 \cdot \textsc{ci\textsubscript{non ott}}\cdot \textsc{cpi\textsubscript{non ott}}\cdot \textsc{t\textsubscript{clock\textsubscript{non ott}}}\\
+		&= 0.945 \cdot \textsc{t\textsubscript{cpu\textsubscript{non ott}}}
+	\end{align*}
+\end{solution}
 
 
 
