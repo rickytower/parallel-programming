@@ -27,22 +27,18 @@ Ci sono 4 passi nella creazione di un programma parallelo:
 Il livello di parallelismo viene determinato nelle fasi di decomposizione e assegnamento.
 
 \subsubsection{Comprensione del problema/programma}
-IIndubbiamente, il primo passo nello sviluppo di software parallelo è capire innanzitutto il problema che si desidera risolvere in parallelo. Se si parte da un programma seriale, ciò implica anche la comprensione del codice esistente.
+Indubbiamente, il primo passo nello sviluppo di software parallelo è capire innanzitutto il problema che si desidera risolvere in parallelo. Se si parte da un programma seriale, ciò implica anche la comprensione del codice esistente.
 
 Prima di investire tempo nel tentativo di sviluppare una soluzione parallela per un problema, bisogna determinare se il problema può effettivamente essere parallelizzato.
 
-Ad esempio, il problema di:
-\begin{quotation}\textit{
-	"Calcolare l'energia potenziale per ciascuna delle diverse migliaia di conformazioni indipendenti di una molecola. Una volta fatto, trovare la conformazione con energia minima."}
-\end{quotation}
-è un problema parallelizzabile.
+
 \begin{enumerate}
-    \item Identificare gli hotspot del programma: rappresentano le parti più "pesanti" del codice e sono solitamente identificati dopo aver fatto profiling\footnote{I tool di profiling eseguono il codice e, assieme al suo risultato, ritornano anche un report che può contenere: il numero di invocazioni a funzione per ogni funzione del codice, il tempo impiegato da ogni esecuzione di ogni funzione, quali parti del codice sono più usate, ...} e analisi delle performance (tramite appositi tool). Gli hotspot sono generalmente le sezioni in cui si concentra la parallelizzazione.
-    \item Identificare i bottleneck del programma: rappresentano i punti del codice che sono più lente ad eseguire (come ad esempio le sezioni dedicate all'I/O). Una possibile strada che si può seguire per i bottleneck consiste nel trasferire la loro esecuzione sulla GPU, in modo da non dover rallentare la CPU. Possiamo quindi vedere due livelli di parallelismo: il primo dato dalla GPU che parallelizza la funzione, mentre il secondo dato dalla concorrenza di esecuzione di CPU e GPU.
-    \item Identificare gli inibitori al parallelismo: analizzare il problema significa anche identificare gli inibitori del parallelismo, che sono quei fattori che impediscono di parallelizzare il codice. Generalmente, un inibitori dal parallelismo è la dipendenza delle task, dove il risultato di quella successiva dipende dal risultato di quella precedente.
+    \item Identificare gli \textbf{hotspot} del programma: rappresentano le parti dove viene svolta la maggior parte del lavoro effettivo. La maggior parte dei programmi scientifici e tecnici di solito svolgono la maggior parte del loro lavoro in pochi punti. Gli strumenti di profilazione e analisi delle prestazioni possono aiutare ad individuare gli hotspote .profiling\footnote{I tool di profiling eseguono il codice e, assieme al suo risultato, ritornano anche un report che può contenere: il numero di invocazioni per ogni funzione contenuta nel codice, e il tempo che impiega ciascuna per determinare il risultato che calcola, quali sono le parti del codice più usate, e così via,\dots} e analisi delle performance (tramite appositi tool). Gli hotspot sono generalmente le sezioni in cui si concentra la parallelizzazione e che hanno un utilizzo della CPU alto.
+    \item Identificare i \textbf{bottleneck} del programma: sono le aree di codice che sono più lente da eseguire (come ad esempio le sezioni dedicate all'I/O). Una possibile strada che si può seguire per contrastare i bottleneck, consiste nel trasferire la loro esecuzione sulla GPU, in modo da non dover rallentare la CPU. Dunque, si possono vedere due livelli di parallelismo: il primo dato dalla parallelizzazione su GPU del codice, mentre il secondo dato dalla concorrenza di esecuzione di CPU e GPU.
+    \item Identificare gli\textbf{ inibitori al parallelismo}: analizzare il problema significa anche identificare gli inibitori del parallelismo, che sono quei fattori che impediscono di parallelizzare il codice. Una classe comune di inibitori è la dipendenza dei dati, come dimostrato dalla sequenza di Fibonacci sotto.
 \end{enumerate}
 
-\underline{Esempio di problema parallelizzabile}: Calcolare l'energia potenziale per ciascuna delle diverse migliaia indipendenti Conformazioni di una molecola. Al termine, trova la conformazione energetica minima. Ogni conformazione molecolare è indipendentemente determinabile e il calcolo della conformazione energetica minima è parallelizzabile.
+\underline{Esempio di problema parallelizzabile}: Calcolare l'energia potenziale per migliaia di diverse conformazioni molecolari indipendenti. Una volta completato, individua la conformazione molecolare con l'energia potenziale minima. Ogni conformazione molecolare è determinabile in modo indipendente e il calcolo dell'energia potenziale minima è parallelizzabile.
 \\
 
 \underline{Esempio di problema non-parallelizzabile}: Calcolare la serie di Fibonacci. Questo problema non è parallelizzabile in quanto il calcolo attuale dipende dai calcoli precedenti (il termine $k+2$ è dato dalla somma dei termini $k+1$ e $k$). 
@@ -51,14 +47,13 @@ Ad esempio, il problema di:
 
 
 \subsubsection{Decomposizione}
-Nella scomposizione andiamo ad identificare task sufficiente affinché ce ne sia abbastanza da poter tenere le thread, e i corrispondenti processori, sempre occupati. Questo significa che se abbiamo una macchina con 100 processori, che possono andare tutti in parallelo, dobbiamo avere un pool di task sufficientemente grande da poter tenere occupati tutti i processori anche nel momento in cui una delle task si blocca. Infatti capiterà che una task arrivi al punto in cui necessità di dati da un'altra task o di eseguire operazioni di I/O, restando quindi bloccata e lasciando inutilizzato il processore. Quello che vogliamo evitare è appunto il suo utilizzo, che possiamo evitare se disponiamo di un'altra task pronta ad essere eseguita appena un processore si libera. Dei core/processori lasciati in stallo (inutilizzati) ci ritroviamo con uno spreco di risorse.
-Per farla semplice, ci serve un numero di task sufficiente a permetterci di rimpiazzare immediatamente quelle "bloccate" per evitare l'inutilizzo dei processori.
+Nella decomposizione (o scomposizione) di un problema in task, è cruciale individuarne un numero appropriato in modo che ci siano sempre thread sufficienti per mantenere i processori occupati. In una configurazione con 100 processori funzionanti in parallelo, è necessario avere un ampio pool di task per garantire che tutti i processori siano costantemente utilizzati, anche se uno dei compiti si blocca. È comune che un task raggiunga un punto in cui necessita di dati da un altro task o deve eseguire operazioni di I/O, interrompendo temporaneamente l'esecuzione e lasciando il processore inutilizzato. L'obiettivo è minimizzare questa inattività, assicurando che un nuovo task sia pronto per essere eseguito non appena un processore si libera. Ogni core o processore lasciato inattivo rappresenta uno spreco di risorse. Pertanto, è essenziale disporre di un numero sufficiente di task prontamente disponibili per sostituire quelli bloccati e massimizzare l'utilizzo dei processori.
 
 Esistono due modi per scomporre in task:
 \begin{itemize}
-    \item Scomposizione di dominio: prevede di scomporre i dati del problema, facendo lavorare poi ogni task su una porzione dei dati. Esistono vari modi di partizionare i dati, la soluzione migliore generalmente dipende dal modo in cui sono memorizzati i dati sul pc.
+    \item Scomposizione di dominio: prevede di scomporre i dati del problema, facendo lavorare poi ogni task su una porzione dei dati. Esistono vari modi di partizionare i dati, la soluzione migliore generalmente dipende dal modo in cui sono memorizzati i dati.
 
-    I problemi, che siano monodimensionale che bidimensionali, possono essere scomposti, ad esempio, in blocchi o cicli (figure \ref{fig:domain-decomposition}). Un fattore importante da tenere presente è il bilanciamento del carico. se siamo sicuri che il tempo impiegato dalla prima thread sul blocco A corrisponde a quello impiegato dalla seconda thread sul blocco B e così via per il resto dei blocchi, allora abbiamo un carico bilanciato. Questo di solito è il caso per problemi lineari. Quando però abbiamo problemi più complessi, il carico di lavoro di una thread diventa imprevedibile. In questo caso potrebbe essere più ottimale aumentare i blocchi facendo in modo che il primo processore che si libera vada a prendere la successiva thread in attesa.
+    I problemi, che siano monodimensionale che bidimensionali, possono essere scomposti, ad esempio, in blocchi o cicli (figure \ref{fig:domain-decomposition}). Un fattore importante da tenere presente è il bilanciamento del carico (\textbf{load balancing}). se siamo sicuri che il tempo impiegato dalla prima thread sul blocco A corrisponde a quello impiegato dalla seconda thread sul blocco B e così via per il resto dei blocchi, allora abbiamo un carico bilanciato. Questo di solito è il caso per problemi lineari. Quando però abbiamo problemi più complessi, il carico di lavoro di una thread diventa imprevedibile. In questo caso potrebbe essere più ottimale aumentare i blocchi facendo in modo che il primo processore che si libera vada a prendere la successiva thread in attesa.
     \begin{figure}[th]
     	\centering
     	\includegraphics[width=0.7\linewidth]{img/domain-decomposition.png}
@@ -74,13 +69,13 @@ La scomposizione è compito del programmatore, che può essere supportato da too
 \underline{Esempio di parallelizzazione}
 \\
 
-Data un'immagine $NxN$ vogliamo:
-\begin{itemize}
-    \item Raddoppiare la luminosità di ogni pixel;
-    \item Calcolare la media di tutti i pixel.
-\end{itemize}
+Data un'immagine $N\times N$ vogliamo:
+\begin{enumerate}[label=$\bullet$ \textbf{Step \arabic*:}]
+    \item raddoppiare la luminosità di ogni pixel; {\color{NavyBlue}\textbf{(complessità $N^2$)}}
+    \item calcolare la media di tutti i pixel. {\color{NavyBlue}\textbf{(complessità $N^2$)}}
+\end{enumerate}
 
-Una risoluzione sequenziale di questo problema costa un tempo totale di $2N^2$, con ogni step che ne costa $N^2$ (figure \ref{fig:esecuzione-sequenziale}). 
+\paragraph{Soluzione sequenziale.} Una soluzione sequenziale di questo problema costa un tempo totale di {\color{NavyBlue}$N^2+N^2=2N^2$} (figura \ref{fig:esecuzione-sequenziale}). 
 \begin{figure}[th]
 	\centering
 	\includegraphics[width=0.7\linewidth]{img/esecuzione-sequenziale.png}
@@ -88,9 +83,9 @@ Una risoluzione sequenziale di questo problema costa un tempo totale di $2N^2$, 
 	\label{fig:esecuzione-sequenziale}
 \end{figure}
 
-Una possibile strategia di parallelizzazione potrebbe consiste nell'eseguire in parallelo lo step 1, portando il tempo necessario a completare questa fase a $N^2/P$ (figure \ref{fig:esecuzione-parallela-1}), dove $P$ rappresenta il numero di processori disponibili. Lo speedup ottenuto sarebbe:
+\paragraph{Parallelizzazione sulla prima fase.}Una strategia di parallelizzazione consiste nell'eseguire in parallelo lo step 1, completandolo in $\frac{N^2}{P}$ (figure \ref{fig:esecuzione-parallela-1}), dove $P$ rappresenta il numero di processori disponibili. Invece parallelizzare lo step 2 risulta inefficiente  per via della interdipendenza tra i pixel dell'immagine nell'applicazione del filtro, dunque il suo costo è di $N^2$. Lo speedup stimato risulta:
 \begin{align*}
-    speedup &\le \frac{2n^2}{\frac{n^2}{p} + n^2}\\
+    speedup &\le \frac{2N^2}{\frac{N^2}{P} + N^2}\\
     &\le 2
 \end{align*}
 
@@ -101,15 +96,15 @@ Una possibile strategia di parallelizzazione potrebbe consiste nell'eseguire in 
 	\label{fig:esecuzione-parallela-1}
 \end{figure}
 
-Una strategia più efficiente consiste nel parallelizzare parzialmente anche il secondo step, computando le somme parziali in parallelo (figure \ref{fig:esecuzione-parallela-2}). I tempi diventano:
+\paragraph{Parallelizzazione sulla seconda fase}Un miglioramento potrebbe essere ottenuto parallelizzando il calcolo della media su ${P}$ processori (calcolo su $P$ matrici di dimensione $\frac{ N^2}{P}$ -- figura \ref{fig:esecuzione-parallela-2}). Infine viene introdotto un tempo di overhead dovuto alla combinazione delle somme parallele per ottenere il risultato finale. I tempi diventano:
 \begin{align*}
     \text{Tempo step 1 } &= \frac{N^2}{P}\\
-    \text{Tempo step 2 } &= \frac{N^2}{P} + P\\
+    \text{Tempo step 2 } &= \frac{N^2}{P}+P    
 \end{align*}
 
-con speedup:
+e si ottiene uno speedup pari a:
 \begin{align*}
-    speedup \le \frac{2n^2}{\frac{n^2}{p} + p}\\
+    speedup \le \frac{2N^2}{\frac{2N^2}{P} + P}\\
 \end{align*}
 
 \begin{figure}[th]
