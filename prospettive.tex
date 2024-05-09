@@ -1,29 +1,41 @@
 \section{Prospettive sulla programmazione parallela}
-Uno degli aspetti più importante è analizzare il problema e capire se può essere parallelizzato. La parallelizzazione del codice parta a dei miglioramenti delle performance solo se il workload (peso computazionale) è non indifferente.
-
-
-Partiamo con un po' di definizioni:
+Uno degli aspetti più importanti della programmazione parallela, è analizzare il problema e capire se può essere parallelizzato. La parallelizzazione del codice porta a dei miglioramenti delle performance solo se il workload (peso computazionale) è non trascurabile.
+Seguono alcune definizioni
 \begin{itemize}
-    \item Task: arbitrario pezzo di lavoro/sequenza di codice in una computazione parallela. Viene eseguito sequenzialmente, la concorrenza si ha solo tra le task;
-    una task è una sequenza di istruzioni che andiamo a identificare, è una parte del programma.
-    \item Processo/thread: entità astratta che performa le task assegnate ai progetti. I processi comunicano e si sincronizzano per eseguire le lo task.
-    \item Processore: motore fisico sul quale si eseguono i processi. Più thread possono essere eseguiti sullo stesso processore, un thread non può essere eseguita su più processori.
+    \item \textbf{Task: } unità di esecuzione o di lavoro di un programma o di un sottoprogramma. Le istruzioni sono eseguite sequenzialmente ovvero non in parallelo.
+
+    \item Processo/thread: entità astratta che esegue i task assegnati ai processi. I processi comunicano tra di loro e si sincronizzano per eseguire i loro task.
+    \item Processore: motore fisico su cui ciascun processo viene eseguito. Il programma viene scritto come un insieme di processi che vengono poi mappati sul processore.
 \end{itemize}
 
 \subsection{Step per creare un programma parallelo}
-Possiamo identificare 4 passi nella creazione di un programma parallelo:
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/4-step-programma-parallelo}
+	\caption{i 4 step per creare un programma parallelo.}
+	\label{fig:4-step-programma-parallelo}
+\end{figure}
+
+Ci sono 4 passi nella creazione di un programma parallelo:
 \begin{enumerate}
-    \item Decomposizione della computazione in task -> parto dall'algoritmo risolutivo e identifico tutte le task che lo compongono (divido il problema in sottoproblemi);
-    \item Assegnamento delle task ai processi (mappiamo le task identificate nelle thread disponibili); 
-    \item Orchestrazione degli accessi ai dati, della comunicazione e della sincronizzazione -> si capisce come raggruppare i processi in unità da eseguire in parallelo;
-    \item Mapping dei processi ai processori. Ovviamente, un processo non può essere assegnato a più unità di calcolo.
+    \item Decomposizione dell'algoritmo risolutivo in task o sottoproblemi;
+    \item Si assegnano le varie task ai processi; 
+    \item Orchestrazione dell'accesso ai dati, comunicazione e sincronizzazione  da parte dei processi;
+    \item Mapping dei processi ai processori ()un processo non può essere assegnato a più unità di calcolo).
 \end{enumerate}
 
-Le fasi di \textbf{decomposizione} e \textbf{assegnamento} compongono la fase di partizionamento del problema (partiamo da un problema grosso e lo dividiamo su processi computazionale). Qui in pratica è dove identifichiamo il livello di parallelismo.
+Il livello di parallelismo viene determinato nelle fasi di decomposizione e assegnamento.
 
 \subsubsection{Comprensione del problema/programma}
-Il primo reale step da eseguire resta però il capire il problema e/o il programma. Se stiamo partendo da un programma sequenziale già scritto, dobbiamo per forza capire come funziona per poterlo parallelizzare, mentre nel caso del problema dobbiamo capire se questo è anche parallelizzabile. 
-In generale quello che dobbiamo fare è:
+IIndubbiamente, il primo passo nello sviluppo di software parallelo è capire innanzitutto il problema che si desidera risolvere in parallelo. Se si parte da un programma seriale, ciò implica anche la comprensione del codice esistente.
+
+Prima di investire tempo nel tentativo di sviluppare una soluzione parallela per un problema, bisogna determinare se il problema può effettivamente essere parallelizzato.
+
+Ad esempio, il problema di:
+\begin{quotation}\textit{
+	"Calcolare l'energia potenziale per ciascuna delle diverse migliaia di conformazioni indipendenti di una molecola. Una volta fatto, trovare la conformazione con energia minima."}
+\end{quotation}
+è un problema parallelizzabile.
 \begin{enumerate}
     \item Identificare gli hotspot del programma: rappresentano le parti più "pesanti" del codice e sono solitamente identificati dopo aver fatto profiling\footnote{I tool di profiling eseguono il codice e, assieme al suo risultato, ritornano anche un report che può contenere: il numero di invocazioni a funzione per ogni funzione del codice, il tempo impiegato da ogni esecuzione di ogni funzione, quali parti del codice sono più usate, ...} e analisi delle performance (tramite appositi tool). Gli hotspot sono generalmente le sezioni in cui si concentra la parallelizzazione.
     \item Identificare i bottleneck del programma: rappresentano i punti del codice che sono più lente ad eseguire (come ad esempio le sezioni dedicate all'I/O). Una possibile strada che si può seguire per i bottleneck consiste nel trasferire la loro esecuzione sulla GPU, in modo da non dover rallentare la CPU. Possiamo quindi vedere due livelli di parallelismo: il primo dato dalla GPU che parallelizza la funzione, mentre il secondo dato dalla concorrenza di esecuzione di CPU e GPU.

@@ -179,7 +179,7 @@ Il CPU time è calcolato come segue:
 &= \frac{\text{Cicli di clock della CPU per una task}}{\text{Frequenza di clock}}
 \end{align*}
 
-I Cicli di clock per istruzione (CPI) medi vengono calcolati come segue:
+I Cicli di clock medi per istruzione (CPI) medi vengono calcolati come segue:
 \begin{align*}
 \text{CPI} &= \frac{\text{Cicli di clock della CPU per una task}}{\text{Numero di istruzioni}}\\
 \text{CPU\textsubscript{\textsc{time}}} &= \text{N di istruzioni} * \text{CPI} * \text{durata di un ciclo di clock}\\
@@ -194,9 +194,9 @@ La relazione tra le varie metriche è visibile di seguito:
 
 Il tempo di CPU dipende da 3 parametri:
 \begin{itemize}
-    \item \textbf{Ciclo di clock (o frequenza)}: dipende dalla tecnologia, quindi l'unico modo per migliorare questo parametro consiste nel sostituire l'architettura;
-    \item \textbf{CPI}: è il numero medio di cicli di clock per istruzione. Rappresenta una media. Dato un programma $P$, lo si esegue interamente e si contano i cicli di clock 
-    \item \textbf{Numero di istruzioni}: il numero di istruzioni usate da un programma dipende dall'instruction set architecture e dalla tecnologia del compilatore. Un buon compilatore permette idealmente di avere un codice finale con meno istruzioni (ovviamente un fattore importante rimane la capacità del programmatore).
+    \item \textbf{Ciclo di clock (o frequenza)}: dipende dalla tecnologia, quindi l'unico modo per migliorare questo parametro consiste nel sostituire l'architettura.
+    \item \textbf{CPI}: è il numero di cicli di clock medio per istruzione. Dipende dall'organizzazione dell'architettura e dall'istruction set architecture (ISA), che è l'insieme delle istruzioni che vengono gestite dall'architettura; se queste sono complesse, richiedono generalmente più cicli di clock.
+    \item \textbf{Numero di istruzioni}: il numero di istruzioni usate da un programma dipende dall'instruction set architecture e dalla tecnologia del compilatore. Un buon compilatore permette idealmente di avere un codice finale con meno istruzioni (ovviamente un fattore importante rimane la capacità del programmatore). Questo parametro è quello in cui è più fattibile intervenire.
 \end{itemize}
 
 Il numero totale di cicli di clock per una task si calcola come segue:
@@ -278,7 +278,7 @@ Date queste misure, il CPU time può essere riscritto come:
 	\end{equation*}
 	il $\textsc{cpi}\textsubscript{new}$ è:
 	\begin{equation*}
-		\textsc{cpi\textsubscript{new}} = \frac{(0.43-(0.25 \cdot 0.43))\cdot 1+(0.21-(0.25\cdot 0.43))\cdot 2 +(0.25\cdot 0.43)\cdot 2+ 0.12 \cdot 2 + 0.24 \cdot 3}{1-(0.25 \cdot 0.43)}
+		\textsc{cpi\textsubscript{new}} = \frac{\splitfrac{(0.43-(0.25 \cdot 0.43))\cdot 1+(0.21-(0.25\cdot 0.43))\cdot 2+}{ +(0.25\cdot 0.43)\cdot 2+ 0.12 \cdot 2 + 0.24 \cdot 3}}{1-(0.25 \cdot 0.43)}
 	\end{equation*}
 	Si ricava il$\textsc{t\textsubscript{cpu\textsubscript{new}}}$:
 	\begin{equation*}
