@@ -51,24 +51,34 @@ Nella decomposizione (o scomposizione) di un problema in task, è cruciale indiv
 
 Esistono due modi per scomporre in task:
 \begin{itemize}
-    \item Scomposizione di dominio: prevede di scomporre i dati del problema, facendo lavorare poi ogni task su una porzione dei dati. Esistono vari modi di partizionare i dati, la soluzione migliore generalmente dipende dal modo in cui sono memorizzati i dati.
-
-    I problemi, che siano monodimensionale che bidimensionali, possono essere scomposti, ad esempio, in blocchi o cicli (figure \ref{fig:domain-decomposition}). Un fattore importante da tenere presente è il bilanciamento del carico (\textbf{load balancing}). se siamo sicuri che il tempo impiegato dalla prima thread sul blocco A corrisponde a quello impiegato dalla seconda thread sul blocco B e così via per il resto dei blocchi, allora abbiamo un carico bilanciato. Questo di solito è il caso per problemi lineari. Quando però abbiamo problemi più complessi, il carico di lavoro di una thread diventa imprevedibile. In questo caso potrebbe essere più ottimale aumentare i blocchi facendo in modo che il primo processore che si libera vada a prendere la successiva thread in attesa.
-    \begin{figure}[th]
+    \item \textbf{Scomposizione di dominio:} il dominio può essere suddiviso tra le istanze del task in diverse modalità a seconda delle dimensioni del problema (figura \ref{fig:domain-decomposition}). Ad esempio, se si considera la somma di tutti i dati di un array, questa operazione può essere suddivisa a livello di blocchi o a livello ciclico (figura \ref{fig:slicing-techniques}). Nel primo caso, i dati sono divisi in blocchi distinti assegnati a diverse istanze per l'elaborazione. Nel secondo caso, ogni istanza elabora sequenzialmente una cella di memoria dopo l'altra, seguendo un ciclo, e le celle sono divise da una distanza. 
+        \begin{figure}[th]
     	\centering
     	\includegraphics[width=0.7\linewidth]{img/domain-decomposition.png}
-    	\caption{Esempio di decomposizione del dominio.}
+    	\caption{scomposizione di dominio.}
     	\label{fig:domain-decomposition}
     \end{figure}
+    
+    Anche nel caso di domini a due dimensioni, come le matrici, è possibile suddividere l'elaborazione in vari modi. Si possono suddividere i dati in blocchi orizzontali, verticali o a mattonelle. Altrimenti, l'elaborazione può essere ciclica nelle righe, nelle colonne o negli elementi della matrice. Un fattore importante da tenere presente è il bilanciamento del carico (\textbf{load balancing}). se siamo sicuri che il tempo impiegato dalla prima thread sul blocco A corrisponde a quello impiegato dalla seconda thread sul blocco B e così via per il resto dei blocchi, allora abbiamo un carico bilanciato. Questo di solito è il caso per problemi lineari. Quando però abbiamo problemi più complessi, il carico di lavoro di una thread diventa imprevedibile. In questo caso potrebbe essere più ottimale aumentare i blocchi facendo in modo che il primo processore che si libera vada a prendere la successiva thread in attesa.
+    \begin{figure}[th]
+    	\centering
+    	\includegraphics[width=0.7\linewidth]{img/slicing-techniques.png}
+    	\caption{i vari modi in cui un dominio può essere scomposto.}
+    	\label{fig:slicing-techniques}
+    \end{figure}
 
-    \item Scomposizione funzionale: ci si concentra sull'elaborazione che deve essere fatta piuttosto che sui dati manipolati dalla computazione. Il problema è quindi scomposto rispetto al lavoro che deve essere fatto. Ogni task esegue parte del lavoro totale.
+    \item \textbf{Scomposizione funzionale:} ci si concentra sull'elaborazione che deve essere fatta piuttosto che sui dati manipolati dalla computazione. Il problema è quindi scomposto rispetto al lavoro che deve essere fatto. Ogni task esegue parte del lavoro totale (figura \ref{fig:functional-decomposition}).
+        \begin{figure}[th]
+    	\centering
+    	\includegraphics[width=0.7\linewidth]{img/functional-decomposition.png}
+    	\caption{scomposizione funzionale.}
+    	\label{fig:functional-decomposition}
+    \end{figure}
 \end{itemize}
 
 La scomposizione è compito del programmatore, che può essere supportato da tool automatici (campo di ricerca).
 
-\underline{Esempio di parallelizzazione}
-\\
-
+\subsubsection*{Esempio di parallelizzazione}
 Data un'immagine $N\times N$ vogliamo:
 \begin{enumerate}[label=$\bullet$ \textbf{Step \arabic*:}]
     \item raddoppiare la luminosità di ogni pixel; {\color{NavyBlue}\textbf{(complessità $N^2$)}}
@@ -115,11 +125,19 @@ e si ottiene uno speedup pari a:
 \end{figure}
 
 \subsubsection{Assegnamento}
-In questa fase andiamo a specificare il meccanismo con cui dividere le task tra i processi. Per semplicità, possiamo vedere le task come "cose da fare", mentre i processi/thread come i "lavoratori". Abbiamo fatto la scomposizione, sappiamo quanti e quali sono le thread, cerchiamo ora di fare un assegnamento che ci garantisca un certo livello di carico. 
-Un approccio strutturato solitamente funziona bene, possiamo seguire euristiche ben conosciute o anche ispezionare attentamente il codice.
+Questo processo richiede la creazione di un numero adeguato di task e la loro distribuzione tra i processi disponibili.
+
+Per prima cosa, è necessario determinare quanti processi sono necessari e quindi associare i task ai processi. Tipicamente, il numero di processi è uguale al numero di processori disponibili per garantire una concorrenza massima.
+
+La strategia di assegnazione dipende dall'esperienza e dalla conoscenza del problema. È consigliabile raggruppare task che richiedono comunicazione tra loro nello stesso processo per accelerare la comunicazione. Al contrario, task che possono eseguire indipendentemente possono essere distribuiti tra processi diversi per ridurre il carico su ciascun processore.
+
+Tuttavia, è cruciale considerare il bilanciamento del carico (\textbf{load balancing}) durante l'assegnazione dei task. Un'assegnazione sbilanciata può compromettere le prestazioni del sistema anche se il codice è parallelizzato correttamente. Ad esempio, se alcuni processi ricevono task più pesanti di altri, potrebbero diventare il collo di bottiglia del sistema, rallentando l'intera esecuzione.
+
+Il tempo di esecuzione complessivo del codice è determinato dal tempo impiegato dal processo più lento, non dalla media dei tempi di esecuzione. Di conseguenza, è fondamentale evitare sbilanciamenti nella distribuzione dei task per massimizzare l'utilizzo dei processori disponibili.
+
+Il miglioramento dell'assegnamento dei task può ridurre gli sprechi di risorse e migliorare le prestazioni complessive del sistema. Anche se non è possibile ottenere un equilibrio perfetto, è importante ridurre al minimo gli sbilanciamenti per sfruttare al meglio le risorse disponibili. Questa ottimizzazione richiede una buona capacità di programmazione e una solida comprensione del problema e dell'architettura del sistema.
 
 
-Il \textbf{load balancing} (bilanciamento del carico di lavoro) fa riferimento alla pratica di distribuzione delle task tra le thread affinchè tutte le thread siano occupate tutto il tempo. Possiamo anche definirlo come la riduzione al minimo dei tempi di inattività del processo. Questo passo è molto significativo per le perfromance. Ad esempio, se tutti i processi fossero soggetti ad un punto che funge da barriera di sincronizzazione, le performance globali verrebbero determinate dalla task più lenta.
 \begin{figure}[th]
 	\centering
 	\includegraphics[width=0.7\linewidth]{img/barrier-sync.png}
@@ -127,41 +145,14 @@ Il \textbf{load balancing} (bilanciamento del carico di lavoro) fa riferimento a
 	\label{fig:barrier-sync}
 \end{figure}
 
-Possiamo ottenere il load balancing in più modi:
-\begin{enumerate}
-    \item Dividendo equamente le task tra i processi disponibili:
-    \begin{itemize}
-        \item In caso di operazioni su array/matrici, dove ogni processo esegue operazioni simili, il dataset viene distribuito in modo uniforme tra i processi;
-        \item Per le iterazioni di un ciclo dove il lavoro svolto da ogni loop è similare, le iterazioni vengono distribuite uniformemente tra i processi;
-        \item Se si utilizza un mix eterogeneo di macchine con performance variabili, è consigliato utilizzare dei tool di analisi delle performance per individuare carichi sbilanciati e aggiustare di conseguenza.
-    \end{itemize}
-    \item Usando un assegnamento dinamico del lavoro: alcune classi generano un carico di lavoro sbilanciato anche se i dati sono distribuiti egualmente tra il processi, come:
-    \begin{itemize}
-        \item Array sparsi;
-        \item Adaptive grid methods, dove alcuni processi potrebbero dover perfezionare la propria mesh, mentre altri no;
-        \item N-body simulations, dove alcune particelle potrebbero migrare verso/dal dominio del proprio processo di origine verso quello di un altro processo, oppure dove alcune particelle richiedono più lavoro rispetto ad altre.
-    \end{itemize}
-    Quando l'ammontare di lavoro che ogni thread performerà è variabile (non intenzionalmente ovviamente), è utile usare un approccio \textbf{scheduler – task pool}. In questo modo, appena un processo finisce, si mette in coda per ottenere un nuovo pezzo di lavoro.
-    Inoltre, potrebbe diventare necessario disegnare un algoritmo che rileva e gestire sbilanciamento mentre questi si verificano dinamicamente nel codice.
-\end{enumerate}
+Il bilanciamento del carico è cruciale per ottenere prestazioni ottimali in un ambiente di elaborazione parallela, come quello di CUDA. Esistono varie strategie per garantire un bilanciamento efficace del carico di lavoro.
 
-La \textbf{granularità} rappresenta una misura qualitativa del rapporto tra computazione e comunicazione. Generalmente i periodi di computazione sono separati da quelli di comunicazione da eventi di sincronizzazione. Relativamente al parallelismo, la granularità si divide in:
-\begin{itemize}
-    \item Fine grain parallelism (parallelismo a grana fine): si effettuano relativamente piccole quantità di lavoro computazionale tra gli eventi di comunicazione. Abbiamo quindi un basso rateo tra computazione e comunicazione. Facilita il load balancing; implica un elevato overhead di comunicazione e meno opportunità per il miglioramento delle performance. Se la granularità è troppo fine è possibile che l'overhead richiesto per comunicazione ee sincronizzazione tra le task richieda più tempo della computazione vera e propria.
+In alcuni casi, è possibile determinare staticamente il peso computazionale di ciascun processo attraverso il profiling e l'analisi delle prestazioni. Tuttavia, ci sono situazioni in cui il peso computazionale dipende dall'input o da altri fattori dinamici, rendendo difficile una determinazione statica. Un esempio di ciò è l'algoritmo di attraversamento del grafo BFS (Breadth-First Search), dove il numero di figli di ciascun nodo può variare notevolmente.
 
+Per gestire questa incertezza, è necessario utilizzare tecniche di bilanciamento dinamico del carico. Queste tecniche consentono di assegnare i task ai processi durante l'esecuzione, in base alle condizioni attuali. Sebbene queste tecniche possano aggiungere un carico computazionale aggiuntivo, sono cruciali per garantire un bilanciamento efficace del carico e massimizzare lo speedup complessivo del sistema.
 
+Durante l'esecuzione, i task vengono inseriti in una coda e assegnati ai processi disponibili. Ogni processo prende un task dalla coda e lo elabora, passando al successivo una volta completato il lavoro. Questo approccio permette di gestire dinamicamente il carico di lavoro e adattarsi alle variazioni nelle prestazioni dei task e dei processi.
 
-
-
-    \item Coarse grain parallelism (parallelismo a grana grossa): si effettuano relativamente grandi quantità di lavoro computazionale tra gli eventi di comunicazione/sincronizzazione. Abbiamo quindi un alto rateo tra computazione e comunicazione. Implica più opportunità per un incremento delle performance, ma rende più difficile bilanciare il carico di lavoro efficientemente
-\end{itemize}
-
-
-
-
-
-
-
-
-
-
+Per quanto riguarda la granularità dei task, si parla di task \textbf{coarse-grained} e \textbf{fine-grained}. Questa distinzione si basa sulla quantità di lavoro svolto da ciascun task. I task fine-grained sono piccoli e comprendono poche righe di codice, mentre i task coarse-grained sono più grandi e comprendono una quantità maggiore di codice. La scelta tra task coarse-grained e fine-grained dipende dal problema specifico e dalla necessità di bilanciare il carico di lavoro. I task fine-grained sono più facili da bilanciare e consentono un maggior grado di flessibilità nell'assegnazione dei task ai processi, ma possono introdurre un overhead aggiuntivo a causa delle sincronizzazioni. D'altra parte, i task coarse-grained sono più difficili da bilanciare ma possono ridurre l'overhead di sincronizzazione. La scelta dipende quindi dalle esigenze specifiche del problema e dall'architettura del sistema.
+\subsubsection{Orchestrazione}
+Il focus principale è comprendere come far comunicare e sincronizzare tutti questi task. Si è già trattato dell'architettura \textit{embarassingly paralle}l, in cui i processi sono completamente indipendenti. In questo scenario, la sincronizzazione non è necessaria: è quasi un'utopia. Tuttavia, quando si rende necessaria la comunicazione, si introduce inevitabilmente un overhead rispetto al codice sequenziale.
