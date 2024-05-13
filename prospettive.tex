@@ -156,3 +156,100 @@ Durante l'esecuzione, i task vengono inseriti in una coda e assegnati ai process
 Per quanto riguarda la granularità dei task, si parla di task \textbf{coarse-grained} e \textbf{fine-grained}. Questa distinzione si basa sulla quantità di lavoro svolto da ciascun task. I task fine-grained sono piccoli e comprendono poche righe di codice, mentre i task coarse-grained sono più grandi e comprendono una quantità maggiore di codice. La scelta tra task coarse-grained e fine-grained dipende dal problema specifico e dalla necessità di bilanciare il carico di lavoro. I task fine-grained sono più facili da bilanciare e consentono un maggior grado di flessibilità nell'assegnazione dei task ai processi, ma possono introdurre un overhead aggiuntivo a causa delle sincronizzazioni. D'altra parte, i task coarse-grained sono più difficili da bilanciare ma possono ridurre l'overhead di sincronizzazione. La scelta dipende quindi dalle esigenze specifiche del problema e dall'architettura del sistema.
 \subsubsection{Orchestrazione}
 Il focus principale è comprendere come far comunicare e sincronizzare tutti questi task. Si è già trattato dell'architettura \textit{embarassingly paralle}l, in cui i processi sono completamente indipendenti. In questo scenario, la sincronizzazione non è necessaria: è quasi un'utopia. Tuttavia, quando si rende necessaria la comunicazione, si introduce inevitabilmente un overhead rispetto al codice sequenziale.
+
+I vari tipi di sincronizzazione possono essere descritti come segue:
+
+\begin{enumerate}
+	\item \textbf{Sincrona}: Si riferisce a una comunicazione che avviene a intervalli regolari e prevedibili. Le parti coinvolte nel processo di comunicazione, sia il mittente che il ricevente, sono consapevoli degli intervalli in cui scambiare informazioni.
+	
+	\item \textbf{Asincrona}: In questo caso, la comunicazione avviene senza un tempo predefinito. La trasmissione dei dati può essere iniziata quando necessario, senza dover attendere un intervallo specifico.
+\end{enumerate}
+
+A seconda del modo in cui avviene la sincronizzazione, può essere:
+
+\begin{itemize}
+	\item \textbf{Bloccante}: Qui, il processo mittente attende il completamento della trasmissione prima di procedere ulteriormente. Si blocca fino a quando il processo destinatario non riceve i dati e viceversa. La sincronizzazione avviene solo quando entrambe le parti sono pronte.
+	
+	\item \textbf{Non bloccante}: In questo caso, il processo mittente può inviare i dati indipendentemente dallo stato del processo destinatario. La sincronizzazione non richiede l'attesa reciproca e il processo mittente può continuare anche se il processo destinatario non è ancora pronto a ricevere i dati.
+\end{itemize}
+
+Inoltre, in un ambiente in cui sono presenti diversi processi, la comunicazione può avvenire secondo due modelli principali:
+
+\begin{itemize}
+	\item \textbf{Point-to-point}: Due processi comunicano direttamente tra loro. Di solito, si fa riferimento a un mittente e a un ricevente, o a un produttore e a un consumatore, dove il mittente genera i dati e il ricevente li consuma.
+	
+	\item \textbf{Collettiva}: In questo caso, un processo comunica con tutti gli altri processi simultaneamente, o un processo può richiedere il contributo di molti altri processi, raccogliendo dati da ognuno di essi.
+\end{itemize}
+\subsubsection*{Esempio di comunicazione collettiva}
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/comunicazione-collettiva}
+	\caption{comunicazione collettiva.}
+	\label{fig:comunicazione-collettiva}
+\end{figure}
+
+Fare riferimento alla figura \ref{fig:comunicazione-collettiva}. Nella comunicazione in broadcast, un processo invia dati in broadcasting a tutti i processi che possono ascoltare, ripetendo lo stesso dato a tutti. Lo scattering è simile, ma i dati inviati a tutti sono diversi. In presenza di una mole di dati, questi vengono divisi e inviati a ciascun processo, che si occupa di filtrare la sua parte. Il contrario è il gathering, dove i dati elaborati vengono raccolti. Dopo lo scattering, viene eseguito il gathering per raccogliere i risultati e metterli insieme. Vi è anche la modalità di reduction, simile al gathering ma con un'operazione aggiuntiva eseguita contemporaneamente. Si raccolgono i dati e si esegue un'operazione contemporaneamente, e il risultato ricevuto è il risultato dell'operazione. Ad esempio, si può eseguire una reduction con la somma, ricevendo come risultato la somma di tutti i contributi.
+
+Parlando dei tipi di sincronizzazione, le barriere sono presenti in tutti i tipi di linguaggi e architetture parallele. A cosa servono? Se vi sono 16 processi che eseguono qualcosa, si deve aspettare che tutti i 16 abbiano finito prima di procedere. Il processo 1, ad esempio, potrebbe aver completato la sua parte, ma deve aspettare che anche gli altri processi terminino, poiché il resto del compito dipende dai risultati degli altri. Ad esempio, se vi è un accesso in memoria in cui tutti i 16 devono prendere una fetta di dati e caricarla in una memoria condivisa, ognuno deve fare la sua parte. Successivamente, ogni processo può eseguire un'elaborazione che richiede tutti i contributi. Prima di procedere, tutti devono terminare, compreso il processo 1. Quando tutti devono finire prima di procedere, viene inserita una barriera nel codice. La barriera è una riga di codice che dipende dal linguaggio. Quando un processo raggiunge questa linea di codice, verifica il valore del contatore della barriera. Se il contatore è già a 16, il processo procede. Altrimenti, il processo si blocca e incrementa il contatore. Tutti i processi che raggiungono la stessa istruzione incrementano il contatore. Quando l'ultimo processo raggiunge la barriera, il contatore raggiunge 16 e la barriera sblocca tutti i processi.
+
+Le barriere richiedono una sincronizzazione dell'accumulatore condiviso attraverso semafori. Si distinguono sincronizzazioni \textbf{point-to-point} e \textbf{collettive}, quest'ultime coinvolgono un singolo produttore e molti consumatori o viceversa. Il mapping dei processi sui processori è generalmente gestito dal sistema operativo, ma può diventare complesso in \textbf{architetture eterogenee}. Il profiling viene utilizzato per valutare le velocità dei processori e implementare algoritmi di mapping dinamici.
+
+I passaggi di decomposizione, mappatura e assegnazione dipendono dall'architettura su cui viene eseguito il codice. Alcuni sono più ad alto livello e indipendenti dall'architettura, mentre altri dipendono strettamente da essa. Questi ultimi sono compiti del programmatore, che impiega più tempo ma ottiene maggiori benefici e speedup.
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=0.45\linewidth]{img/grid}
+	\caption{grid solver. L'espresssione per aggiornare ogni punto interno è: $A[i,j]=0.2 \times(A[i,j]+A[i,j-1]+A[i-1,j]+A[i,j+1]+A[i+1,j])$}
+	\label{fig:grid}
+\end{figure}
+
+Un problema comune è il calcolo della media dei punti in una griglia, considerando i punti limitrofi (figura \ref{fig:grid}). In sequenza, si itera attraverso la griglia e si calcola la media. In parallelo, la decomposizione potrebbe essere naturale, ma il problema sorge quando è necessario avere i dati dei punti limitrofi per aggiornare il valore corrente. È importante considerare che il risultato finale deve essere la media corretta dei punti.
+
+Una soluzione per risolvere il problema è l'approccio \textbf{GAUS-Seidel}, che applica una formula in parallelo due volte e misura la differenza tra i valori aggiornati. Se la differenza è significativa, ripete l'operazione. Si basa sul concetto di convergenza, dove la differenza tra i valori vecchi e nuovi diminuisce gradualmente fino a quando i valori convergono. Una volta raggiunta la convergenza, il processo termina.
+
+\subsubsection{Implementazione dell'approccio GAUS-Seidel}
+
+Per implementare l'approccio GAUS-Seidel, si può utilizzare una versione sequenziale della formula applicata due volte, con un controllo sulla differenza tra i valori aggiornati per determinare la convergenza. Questo approccio sfrutta il concetto di convergenza, dove la differenza tra i valori vecchi e nuovi diminuisce gradualmente fino alla convergenza, indicando il completamento del processo.
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=0.45\linewidth]{img/red-black-diagonals}
+	\caption{Gauss-Seidel con diagonali: in rosso i passaggi del sequenziale e in blu del parallelo.}
+	\label{fig:red-black-diagonals}
+\end{figure}
+
+\paragraph{\color{red}Nota!}Le frecce {\color{red}rosse} indicano le dipendenze.
+\paragraph{Implementazione dell'approccio GAUS-Seidel: parallelizzazione sulle diagonali}
+
+Un problema significativo riguarda il livello di parallelismo all'interno delle diagonali generate (figura \ref{fig:red-black-diagonals}). Il principale ostacolo risiede nella variazione delle dimensioni delle diagonali, che comporta un numero variabile di nodi da sincronizzare. Questa variazione crea un overhead considerevole nell'esecuzione del codice parallelo, compromettendo i vantaggi ottenuti dal parallelismo. Inoltre, il numero massimo di nodi in parallelo corrisponde alla dimensione massima delle diagonali. Ad esempio, in CUDA si possono avere fino a 600 thread, limitando ulteriormente il potenziale di parallelismo. Di conseguenza, sebbene il massimo livello di parallelismo sia raggiunto nelle diagonali quasi complete, in altri casi, come quelli mostrati, il parallelismo è notevolmente ridotto, con solo due task in esecuzione e un'elevata quantità di overhead. Questa situazione compromette l'efficacia complessiva del sistema. Pertanto, come affrontare questa sfida senza compromettere l'efficienza del parallelismo è una questione fondamentale.
+
+\subsubsection{Applicazione dell'approccio Red-Black Ordering}
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=0.5\linewidth]{img/red-black-ordering}
+	\caption{Red-Black Ordering. La versione completamente parallelizzabile.}
+	\label{fig:red-black-ordering}
+\end{figure}
+L'approccio Red-Black Ordering suddivide i nodi in due classi, rossi e neri, e applica l'algoritmo in due fasi separate. Prima vengono elaborati tutti i nodi rossi, indipendenti tra loro, e successivamente quelli neri. Questo consente un elevato livello di parallelismo, poiché i nodi di ogni colore possono essere elaborati in parallelo. Nonostante richieda qualche passaggio aggiuntivo, l'approccio convergerà comunque, offrendo un notevole aumento del parallelismo rispetto all'approccio GAUS-Seidel. 
+
+\paragraph{\color{red}Nota!}Le frecce indicano le dipendenze.
+
+\section{Implementazione della comunicazione e della sincronizzazione}
+
+L'implementazione della comunicazione e della sincronizzazione avviene attraverso diverse tecniche, tra cui l'uso di primitive hardware come le lock, le barriere o i semafori. In contesti come OpenMP, sono disponibili specifiche primitive per la gestione di thread. Nel caso di memoria condivisa, l'implementazione delle operazioni di sincronizzazione può essere personalizzata.
+
+È fondamentale che il codice sia comprensibile da tutte le thread create nel sistema, anche se ciascuna thread può interpretarlo in modo diverso. Le thread eseguono il medesimo codice, ma ciascuna identifica il proprio ruolo in base all'istanza di esecuzione.
+
+Si possono sfruttare due tipi di parallelismo: sulle funzioni, dove ogni thread esegue una funzione specifica, o sui dati, dove ciascuna thread opera su dati distinti. È possibile identificare ciascuna thread attraverso funzioni come \texttt{getThreadId()}, consentendo di assegnare compiti specifici in base all'identificazione.
+
+Le tecniche di sincronizzazione, come le barriere, sono disponibili nei linguaggi di programmazione, ma è consigliabile limitarne l'uso a causa del loro impatto sulle prestazioni. In alcune situazioni, è necessario mantenere tali sincronizzazioni per garantire la correttezza dell'esecuzione.
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/message-passing}
+	\caption{message passing.}
+	\label{fig:message-passing}
+\end{figure}
+
+In scenari con memoria distribuita, la comunicazione avviene attraverso primitive di \textbf{message passing}. I processi devono invocare funzioni di invio e ricezione per scambiare dati tra di loro. Per ridurre l'overhead, è consigliabile raggruppare i dati in pacchetti da inviare e ricevere in una singola operazione.
+
+Una strategia comune per gestire la comunicazione su architetture con memoria distribuita è l'uso di buffer intermedi dove i dati sono temporaneamente memorizzati prima della comunicazione. Questa tecnica riduce l'overhead associato alla trasmissione dei dati e facilita l'esecuzione delle computazioni distribuite.
+
+Nonostante il codice rimanga simile, l'implementazione delle operazioni di invio e ricezione varia a seconda del contesto. È importante adattare queste implementazioni in base alle specifiche esigenze dell'architettura e delle applicazioni.
