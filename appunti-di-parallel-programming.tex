@@ -1,4 +1,4 @@
-\documentclass[italian,10pt,a4paper]{article}
+\documentclass[italian,10pt,a4paper]{report}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
 \usepackage{mathtools}
@@ -15,7 +15,10 @@
 \usepackage{babel}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
-\usepackage{mdframed}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{shapes, positioning}
+\usepackage{wrapfig, subcaption}
 {\renewcommand{\arraystretch}{2}%
 \title{Appunti di parallel programming}
 \author{Riccardo Torre\and Michele Perlotto}
@@ -35,11 +38,9 @@
 \begin{document}
 	\maketitle
 	\tableofcontents
-	\include{introduzione}
-	\include{terminologia}
-	\include{modelli-programmazione-parallela}
-	\include{valutazione-performance}
-    \include{prospettive}
+	\input{tassonomia}
+	\input{valutazione-performance}
+    \input{prospettive}
 
 
 

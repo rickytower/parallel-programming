@@ -21,11 +21,31 @@ Per comparare le performance di un componente hardware può essere consultata un
 \subsection{Principio quantitativo} Per aumentare lo speedup è necessario concentrare le energie sul codice che viene eseguito più frequentemente, piuttosto che quello eseguito più raramente.
 
 Un importante riferimento a tal proposito, è la \textbf{legge di Amdahl}.
-\newpage
-\paragraph{Legge di Amdahl.}
-\begin{mdframed}
+
+\vspace{.5cm}
+\begin{tcolorbox}[title=Legge di Amdahl]
     \textit{"Il miglioramento delle prestazioni di un sistema che si può ottenere ottimizzando una certa parte del sistema è limitato dalla frazione di tempo in cui tale parte è effettivamente utilizzata"}.
-\end{mdframed}
+\end{tcolorbox}
+\vspace{.5cm}
+
+\subsubsection*{Legenda}
+\begin{table}[th]
+	\centering
+	\begin{tblr}{|c|c|}
+		\hline
+		$e_n$ & execution time new
+		\\\hline
+		$e_o$ & execution time old
+		\\\hline
+		$f_i$ & fraction improved
+		\\\hline
+		$s_i$ & speedup improved
+		\\\hline
+		$s_g$ & speedup global
+		\\\hline
+	\end{tblr}
+\end{table}
+
 Di seguito con $f_i \le 1$ (\textit{"fraction improved"}) viene indicata la frazione del tempo di esecuzione della macchina originale (o del codice originale) che può essere modificata per trarre vantaggio dalle migliorie, mentre con $s_i \ge 1$ (\textit{"speedup improved"}) viene indicato il miglioramento ottenuto da un una modalità di esecuzione più veloce.
 \begin{align}
     e_n &= e_o \cdot \left((1-f_i) + \frac{f_i}{s_i} \right) \label{eqn:execution-time-new} \\
@@ -35,26 +55,7 @@ Se un miglioramento può essere usato solo per una frazione dell'intero task:
 \begin{equation}
     s_g = \frac{1}{(1-f_i)+\frac{f_i}{s_i}} \fcolorbox{red}{white}{$\le \frac{1}{(1-f_i)}$} \label{eqn:speedup-global-with-limit}
 \end{equation}
-\begin{eqnarray}
-    \begin{tblr}{|c|c|}
-    \hline
-       e_n & \text{execution time new}
-       \\
-       \hline
-       e_o & \text{execution time old}
-       \\
-       \hline
-       f_i & \text{fraction improved}
-       \\
-       \hline
-       s_i & \text{speedup improved}
-       \\
-       \hline
-       s_g & \text{speedup global}
-       \\
-       \hline
-    \end{tblr}
-\end{eqnarray}
+
 
 Lo \textbf{speedup globale} $s_g$ è uguale a $ \frac{1}{(1-f_i)+\frac{f_i}{s_i}}$ dove $1-f_i$ è la frazione non parallelizzabile, $f_i$ è la frazione parallelizzabile e $s_i$ è lo speedup che si ottiene dalla porzione parallelizzabile di codice. Lo speedup globale massimo, nel riquadro rosso (equazione \ref{eqn:speedup-global-with-limit}) si ottiene facendo tendere la $s_i$ all'infinito: \[\lim_{s_i \to \infty}{\frac{f_i}{s_i}} = 0\]
 \begin{exercise}
